@@ -1,8 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark theme colors - Vinyl aesthetic */
+  --background: #09090b;
+  --foreground: #fafafa;
+
+  /* Vinyl color palette */
+  --vinyl-50: #fafafa;
+  --vinyl-100: #f4f4f5;
+  --vinyl-200: #e4e4e7;
+  --vinyl-300: #d4d4d8;
+  --vinyl-400: #a1a1aa;
+  --vinyl-500: #71717a;
+  --vinyl-600: #52525b;
+  --vinyl-700: #3f3f46;
+  --vinyl-800: #27272a;
+  --vinyl-900: #18181b;
+  --vinyl-950: #09090b;
+
+  /* Accent colors */
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-blue: #3b82f6;
+  --accent-gold: #fbbf24;
 }
 
 @theme inline {
@@ -10,17 +30,61 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Vinyl colors */
+  --color-vinyl-50: var(--vinyl-50);
+  --color-vinyl-100: var(--vinyl-100);
+  --color-vinyl-200: var(--vinyl-200);
+  --color-vinyl-300: var(--vinyl-300);
+  --color-vinyl-400: var(--vinyl-400);
+  --color-vinyl-500: var(--vinyl-500);
+  --color-vinyl-600: var(--vinyl-600);
+  --color-vinyl-700: var(--vinyl-700);
+  --color-vinyl-800: var(--vinyl-800);
+  --color-vinyl-900: var(--vinyl-900);
+  --color-vinyl-950: var(--vinyl-950);
+
+  /* Accent colors */
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-gold: var(--accent-gold);
+
+  /* Custom animations */
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom keyframe animations */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Utility classes for smooth transitions */
+* {
+  @apply transition-colors duration-200;
 }

@@ -1,0 +1,70 @@
+// Prisma schema for Vinyl View app
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Record {
+  id            String   @id @default(cuid())
+
+  // Core record information
+  title         String
+  artist        String
+  label         String?
+  year          Int?
+
+  // Discogs data
+  discogsId     String?  @unique
+  discogsUrl    String?
+
+  // Barcode/identifiers
+  upc           String?
+  catno         String?  // Catalog number
+
+  // Format details
+  format        String?  // e.g., "LP", "12\"", "7\""
+  formatDesc    String?  // e.g., "Vinyl, LP, Album, Reissue"
+  speed         String?  // e.g., "33 ⅓ RPM"
+
+  // Genre/style
+  genres        String[] // Array of genres
+  styles        String[] // Array of styles
+
+  // Media
+  coverArtUrl   String?
+  thumbnailUrl  String?
+
+  // Additional info
+  country       String?
+  released      String?  // Release date string
+  notes         String?  // User notes
+
+  // Metadata
+  dateAdded     DateTime @default(now())
+  dateUpdated   DateTime @updatedAt
+
+  @@index([artist])
+  @@index([title])
+  @@index([discogsId])
+  @@index([upc])
+  @@index([dateAdded])
+}
+
+// Optional: Track searches for caching
+model DiscogsCache {
+  id            String   @id @default(cuid())
+  query         String   @unique
+  queryType     String   // "search", "release", "barcode"
+  response      Json
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+
+  @@index([query, queryType])
+  @@index([expiresAt])
+}
