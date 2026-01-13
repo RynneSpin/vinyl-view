@@ -36,7 +36,8 @@ function VerifyEmailForm() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || data.message || "Verification failed");
+        console.error("Verification error:", response.status, data);
+        setError(data.error || data.message || `Verification failed (${response.status})`);
         setLoading(false);
         return;
       }
@@ -65,12 +66,15 @@ function VerifyEmailForm() {
       });
 
       if (!response.ok) {
-        setError("Failed to resend verification code");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Resend OTP error:", response.status, errorData);
+        setError(errorData.message || `Failed to resend verification code (${response.status})`);
       } else {
         setError(null);
         alert("Verification code sent! Check your email.");
       }
     } catch (err) {
+      console.error("Resend OTP exception:", err);
       setError("Failed to resend verification code");
     } finally {
       setLoading(false);
