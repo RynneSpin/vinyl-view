@@ -8,6 +8,18 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  records   Record[]
+
+  @@index([email])
+}
+
 model Record {
   id            String   @id @default(cuid())
 
@@ -18,7 +30,7 @@ model Record {
   year          Int?
 
   // Discogs data
-  discogsId     String?  @unique
+  discogsId     String?
   discogsUrl    String?
 
   // Barcode/identifiers
@@ -47,11 +59,18 @@ model Record {
   dateAdded     DateTime @default(now())
   dateUpdated   DateTime @updatedAt
 
+  // User relationship
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([artist])
   @@index([title])
   @@index([discogsId])
   @@index([upc])
   @@index([dateAdded])
+  @@index([userId])
+  @@index([userId, dateAdded])
+  @@unique([userId, discogsId])
 }
 
 // Optional: Track searches for caching

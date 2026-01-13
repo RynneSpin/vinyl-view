@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         hostname: 'img.discogs.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'st.discogs.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api-img.discogs.com',
+        pathname: '/**',
+      }
     ],
   },
 };

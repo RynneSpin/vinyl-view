@@ -24,6 +24,9 @@ export interface Record {
   notes?: string | null;
   dateAdded: Date;
   dateUpdated: Date;
+
+  // User relationship
+  userId: string;
 }
 
 export interface CreateRecordInput {

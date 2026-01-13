@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const createRecordSchema = z.object({
@@ -25,9 +26,13 @@ const createRecordSchema = z.object({
 
 /**
  * GET /api/records
- * Fetch all records with optional filtering and sorting
+ * Fetch all records for authenticated user with optional filtering and sorting
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const { searchParams } = new URL(request.url);
     const sortBy = (searchParams.get('sortBy') as 'dateAdded' | 'artist' | 'title' | 'year') || 'dateAdded';
@@ -35,8 +40,11 @@ export async function GET(request: NextRequest) {
     const genre = searchParams.get('genre');
     const artist = searchParams.get('artist');
 
-    // Build where clause
-    const where: any = {};
+    // Build where clause with userId filter
+    const where: any = {
+      userId: user!.id, // Filter by authenticated user
+    };
+
     if (genre) {
       where.genres = {
         has: genre,
@@ -68,17 +76,24 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/records
- * Create a new record
+ * Create a new record for authenticated user
  */
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const body = await request.json();
     const validated = createRecordSchema.parse(body);
 
-    // Check if record with same Discogs ID already exists
+    // Check if record with same Discogs ID already exists for this user
     if (validated.discogsId) {
-      const existing = await prisma.record.findUnique({
-        where: { discogsId: validated.discogsId },
+      const existing = await prisma.record.findFirst({
+        where: {
+          discogsId: validated.discogsId,
+          userId: user!.id, // Check within user's collection only
+        },
       });
 
       if (existing) {
@@ -89,8 +104,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create record with userId
+    console.log(`Creating record for user: ${user!.id} (${user!.email})`);
     const record = await prisma.record.create({
-      data: validated,
+      data: {
+        ...validated,
+        userId: user!.id, // Associate with authenticated user
+      },
     });
 
     return NextResponse.json(record, { status: 201 });
@@ -103,6 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Error creating record:', error);
+    console.error('User attempting to create record:', user);
     return NextResponse.json(
       { error: 'Failed to create record' },
       { status: 500 }

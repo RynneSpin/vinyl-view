@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const updateRecordSchema = z.object({
@@ -14,17 +15,25 @@ const updateRecordSchema = z.object({
 
 /**
  * GET /api/records/[id]
- * Fetch a single record by ID
+ * Fetch a single record by ID (user must own it)
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const { id } = await params;
 
-    const record = await prisma.record.findUnique({
-      where: { id },
+    // Find record and verify ownership
+    const record = await prisma.record.findFirst({
+      where: {
+        id,
+        userId: user!.id, // Verify user owns this record
+      },
     });
 
     if (!record) {
@@ -46,16 +55,35 @@ export async function GET(
 
 /**
  * PUT /api/records/[id]
- * Update a record
+ * Update a record (user must own it)
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const { id } = await params;
     const body = await request.json();
     const validated = updateRecordSchema.parse(body);
+
+    // Verify ownership before update
+    const existing = await prisma.record.findFirst({
+      where: {
+        id,
+        userId: user!.id,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Record not found' },
+        { status: 404 }
+      );
+    }
 
     const record = await prisma.record.update({
       where: { id },
@@ -81,14 +109,33 @@ export async function PUT(
 
 /**
  * DELETE /api/records/[id]
- * Delete a record
+ * Delete a record (user must own it)
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const { id } = await params;
+
+    // Verify ownership before delete
+    const existing = await prisma.record.findFirst({
+      where: {
+        id,
+        userId: user!.id,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Record not found' },
+        { status: 404 }
+      );
+    }
 
     await prisma.record.delete({
       where: { id },

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Record, RecordFilters, CreateRecordInput } from '@/types/record';
 
 export function useRecords(filters?: RecordFilters) {
+  const router = useRouter();
   const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,12 @@ export function useRecords(filters?: RecordFilters) {
 
       const response = await fetch(`/api/records?${params.toString()}`);
 
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        router.push('/auth/sign-in');
+        return;
+      }
+
       if (!response.ok) {
         throw new Error('Failed to fetch records');
       }
@@ -32,7 +40,7 @@ export function useRecords(filters?: RecordFilters) {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, router]);
 
   useEffect(() => {
     fetchRecords();
@@ -44,6 +52,12 @@ export function useRecords(filters?: RecordFilters) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(record),
     });
+
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      router.push('/auth/sign-in');
+      throw new Error('Authentication required');
+    }
 
     if (!response.ok) {
       const data = await response.json();
@@ -65,6 +79,12 @@ export function useRecords(filters?: RecordFilters) {
       body: JSON.stringify(updates),
     });
 
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      router.push('/auth/sign-in');
+      throw new Error('Authentication required');
+    }
+
     if (!response.ok) {
       throw new Error('Failed to update record');
     }
@@ -80,6 +100,12 @@ export function useRecords(filters?: RecordFilters) {
     const response = await fetch(`/api/records/${id}`, {
       method: 'DELETE',
     });
+
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      router.push('/auth/sign-in');
+      throw new Error('Authentication required');
+    }
 
     if (!response.ok) {
       throw new Error('Failed to delete record');

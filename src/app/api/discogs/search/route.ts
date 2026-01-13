@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDiscogsClient } from '@/lib/discogs';
+import { requireAuth } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const searchSchema = z.object({
@@ -12,6 +13,10 @@ const searchSchema = z.object({
  * Search Discogs database by artist and/or album name
  */
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const { user, response } = await requireAuth(request);
+  if (response) return response;
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');

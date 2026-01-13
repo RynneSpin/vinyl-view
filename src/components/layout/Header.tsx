@@ -1,6 +1,17 @@
-import Link from 'next/link';
+"use client";
+
+import Link from "next/link";
+import { useSession, authClient } from "@/lib/auth/client";
+import Button from "@/components/ui/Button";
 
 export default function Header() {
+  const { data: session, isPending } = useSession();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    window.location.href = "/auth/sign-in";
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-vinyl-800 bg-vinyl-950/80 backdrop-blur-md">
       <div className="container mx-auto px-4 py-4">
@@ -22,24 +33,59 @@ export default function Header() {
               <h1 className="text-xl font-bold text-vinyl-50 group-hover:text-accent-purple transition-colors">
                 Vinyl View
               </h1>
-              <p className="text-xs text-vinyl-400">Your Collection</p>
+              <p className="text-xs text-vinyl-400">
+                {session?.user?.name || "Your Collection"}
+              </p>
             </div>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="px-4 py-2 text-vinyl-200 hover:text-vinyl-50 hover:bg-vinyl-800 rounded-lg transition-colors"
-            >
-              Collection
-            </Link>
-            <Link
-              href="/add"
-              className="px-4 py-2 bg-accent-purple hover:bg-accent-purple/90 text-white rounded-lg transition-colors shadow-lg shadow-accent-purple/30"
-            >
-              + Add Record
-            </Link>
+            {session ? (
+              <>
+                <Link
+                  href="/"
+                  className="px-4 py-2 text-vinyl-200 hover:text-vinyl-50 hover:bg-vinyl-800 rounded-lg transition-colors"
+                >
+                  Collection
+                </Link>
+                <Link
+                  href="/add"
+                  className="px-4 py-2 bg-accent-purple hover:bg-accent-purple/90 text-white rounded-lg transition-colors shadow-lg shadow-accent-purple/30"
+                >
+                  + Add Record
+                </Link>
+
+                {/* User Menu */}
+                <div className="relative flex items-center gap-3 pl-4 border-l border-vinyl-700">
+                  <div className="text-right">
+                    <p className="text-sm text-vinyl-200">
+                      {session.user.name || "User"}
+                    </p>
+                    <p className="text-xs text-vinyl-400">
+                      {session.user.email}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="text-vinyl-300 hover:text-vinyl-50"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              </>
+            ) : (
+              !isPending && (
+                <Link
+                  href="/auth/sign-in"
+                  className="px-4 py-2 bg-accent-purple hover:bg-accent-purple/90 text-white rounded-lg transition-colors"
+                >
+                  Sign In
+                </Link>
+              )
+            )}
           </nav>
         </div>
       </div>
