@@ -243,6 +243,33 @@ export default function RecordDetailPage({
             </Card>
           )}
 
+          {/* Tracklist */}
+          {record.tracklist && record.tracklist.length > 0 && (
+            <Card variant="default">
+              <p className="text-sm text-vinyl-400 mb-3">Tracklist</p>
+              <div className="space-y-1">
+                {record.tracklist.map((track, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 text-sm py-1.5 border-b border-vinyl-800 last:border-0"
+                  >
+                    <span className="text-vinyl-500 w-8 flex-shrink-0 font-mono">
+                      {track.position || '-'}
+                    </span>
+                    <span className="text-vinyl-100 flex-1">
+                      {track.title}
+                    </span>
+                    {track.duration && (
+                      <span className="text-vinyl-500 flex-shrink-0 font-mono">
+                        {track.duration}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {/* Notes */}
           <Card variant="default">
             <div className="flex items-center justify-between mb-3">

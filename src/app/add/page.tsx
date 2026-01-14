@@ -14,7 +14,7 @@ import BarcodeScanner from '@/components/scanner/BarcodeScanner';
 import Toast from '@/components/ui/Toast';
 import Spinner from '@/components/ui/Spinner';
 import Image from 'next/image';
-import type { DiscogsSearchResult } from '@/types/discogs';
+import type { DiscogsSearchResult, DiscogsRelease } from '@/types/discogs';
 
 export default function AddRecordPage() {
   const router = useRouter();
@@ -23,7 +23,9 @@ export default function AddRecordPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DiscogsSearchResult[]>([]);
-  const [selectedRecord, setSelectedRecord] = useState<DiscogsSearchResult | null>(null);
+  const [selectedResult, setSelectedResult] = useState<DiscogsSearchResult | null>(null);
+  const [fullRelease, setFullRelease] = useState<DiscogsRelease | null>(null);
+  const [loadingRelease, setLoadingRelease] = useState(false);
   const [notes, setNotes] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
@@ -62,16 +64,38 @@ export default function AddRecordPage() {
     }
   };
 
-  // Add record to collection
-  const handleAddRecord = async () => {
-    if (!selectedRecord) return;
+  // Handle selecting a record from search results
+  const handleSelectRecord = async (result: DiscogsSearchResult) => {
+    setSelectedResult(result);
+    setFullRelease(null);
+    setLoadingRelease(true);
+    setNotes('');
 
     try {
-      // Get full release details from Discogs
-      const release = await getRelease(selectedRecord.id.toString());
+      const release = await getRelease(result.id.toString());
+      setFullRelease(release);
+    } catch (err) {
+      setToast({ message: 'Failed to load record details', type: 'error' });
+      setSelectedResult(null);
+    } finally {
+      setLoadingRelease(false);
+    }
+  };
 
+  // Close the modal
+  const handleCloseModal = () => {
+    setSelectedResult(null);
+    setFullRelease(null);
+    setNotes('');
+  };
+
+  // Add record to collection
+  const handleAddRecord = async () => {
+    if (!fullRelease) return;
+
+    try {
       // Convert to our record format
-      const recordData = discogsReleaseToRecord(release);
+      const recordData = discogsReleaseToRecord(fullRelease);
 
       // Add notes if any
       if (notes.trim()) {
@@ -128,9 +152,9 @@ export default function AddRecordPage() {
               {searchResults.map((result) => (
                 <Card
                   key={result.id}
-                  variant={selectedRecord?.id === result.id ? 'bordered' : 'default'}
+                  variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
                   className="cursor-pointer hover:border-accent-purple transition-all"
-                  onClick={() => setSelectedRecord(result)}
+                  onClick={() => handleSelectRecord(result)}
                 >
                   <div className="space-y-3">
                     {result.cover_image && (
@@ -186,9 +210,9 @@ export default function AddRecordPage() {
               {searchResults.map((result) => (
                 <Card
                   key={result.id}
-                  variant={selectedRecord?.id === result.id ? 'bordered' : 'default'}
+                  variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
                   className="cursor-pointer hover:border-accent-purple transition-all"
-                  onClick={() => setSelectedRecord(result)}
+                  onClick={() => handleSelectRecord(result)}
                 >
                   <div className="space-y-3">
                     {result.cover_image && (
@@ -236,64 +260,107 @@ export default function AddRecordPage() {
 
       {/* Selected Record Modal */}
       <Modal
-        isOpen={!!selectedRecord}
-        onClose={() => setSelectedRecord(null)}
+        isOpen={!!selectedResult}
+        onClose={handleCloseModal}
         title="Add to Collection"
         size="lg"
       >
-        {selectedRecord && (
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-            {/* Album Art */}
-            {selectedRecord.cover_image && (
-              <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 mx-auto sm:mx-0">
-                <Image
-                  src={selectedRecord.cover_image}
-                  alt={selectedRecord.title}
-                  fill
-                  className="object-cover rounded-lg"
-                  sizes="160px"
-                />
-              </div>
-            )}
+        {loadingRelease ? (
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : fullRelease ? (
+          <div className="space-y-4">
+            {/* Header with album art and basic info */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              {/* Album Art */}
+              {(fullRelease.images?.[0]?.uri || fullRelease.thumb) && (
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 mx-auto sm:mx-0">
+                  <Image
+                    src={fullRelease.images?.[0]?.uri || fullRelease.thumb || ''}
+                    alt={fullRelease.title}
+                    fill
+                    className="object-cover rounded-lg"
+                    sizes="160px"
+                  />
+                </div>
+              )}
 
-            {/* Details */}
-            <div className="flex-1 space-y-4">
-              <div className="text-center sm:text-left">
+              {/* Details */}
+              <div className="flex-1 text-center sm:text-left">
                 <h4 className="text-xl sm:text-2xl font-bold text-vinyl-50">
-                  {selectedRecord.title}
+                  {fullRelease.title}
                 </h4>
-                <p className="text-vinyl-300 mt-1">
-                  {selectedRecord.year}
-                  {selectedRecord.country && ` • ${selectedRecord.country}`}
+                <p className="text-lg text-vinyl-200 mt-1">
+                  {fullRelease.artists?.[0]?.name || 'Unknown Artist'}
                 </p>
-                {selectedRecord.genre && selectedRecord.genre.length > 0 && (
+                <p className="text-vinyl-400 mt-1">
+                  {fullRelease.year}
+                  {fullRelease.country && ` • ${fullRelease.country}`}
+                </p>
+                {fullRelease.labels?.[0] && (
                   <p className="text-sm text-vinyl-400 mt-2">
-                    {selectedRecord.genre.join(', ')}
+                    <span className="text-vinyl-500">Label:</span>{' '}
+                    {fullRelease.labels[0].name}
+                    {fullRelease.labels[0].catno && ` (${fullRelease.labels[0].catno})`}
+                  </p>
+                )}
+                {fullRelease.genres && fullRelease.genres.length > 0 && (
+                  <p className="text-sm text-vinyl-400 mt-1">
+                    {fullRelease.genres.join(', ')}
                   </p>
                 )}
               </div>
+            </div>
 
+            {/* Tracklist */}
+            {fullRelease.tracklist && fullRelease.tracklist.length > 0 && (
+              <div className="border-t border-vinyl-700 pt-4">
+                <h5 className="text-sm font-medium text-vinyl-300 mb-2">Tracklist</h5>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {fullRelease.tracklist.map((track, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 text-sm py-1"
+                    >
+                      <span className="text-vinyl-500 w-8 flex-shrink-0">
+                        {track.position || '-'}
+                      </span>
+                      <span className="text-vinyl-100 flex-1 truncate">
+                        {track.title}
+                      </span>
+                      {track.duration && (
+                        <span className="text-vinyl-500 flex-shrink-0">
+                          {track.duration}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notes input */}
+            <div className="border-t border-vinyl-700 pt-4">
               <Input
                 label="Notes (optional)"
                 placeholder="Add personal notes about this record..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
+            </div>
 
-              <div className="flex gap-3">
-                <Button onClick={handleAddRecord} isLoading={loading} className="flex-1">
-                  Add to Collection
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setSelectedRecord(null)}
-                >
-                  Cancel
-                </Button>
-              </div>
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleAddRecord} isLoading={loading} className="flex-1">
+                Add to Collection
+              </Button>
+              <Button variant="ghost" onClick={handleCloseModal}>
+                Cancel
+              </Button>
             </div>
           </div>
-        )}
+        ) : null}
       </Modal>
 
       {/* Toast Notifications */}

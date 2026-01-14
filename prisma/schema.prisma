@@ -46,6 +46,9 @@ model Record {
   genres        String[] // Array of genres
   styles        String[] // Array of styles
 
+  // Tracklist (stored as JSON array of {position, title, duration})
+  tracklist     Json?
+
   // Media
   coverArtUrl   String?
   thumbnailUrl  String?

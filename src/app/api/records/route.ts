@@ -3,25 +3,32 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
+const trackSchema = z.object({
+  position: z.string().optional().default(''),
+  title: z.string(),
+  duration: z.string().optional().default(''),
+});
+
 const createRecordSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   artist: z.string().min(1, 'Artist is required'),
-  label: z.string().optional(),
-  year: z.number().optional(),
-  discogsId: z.string().optional(),
-  discogsUrl: z.string().optional(),
-  upc: z.string().optional(),
-  catno: z.string().optional(),
-  format: z.string().optional(),
-  formatDesc: z.string().optional(),
-  speed: z.string().optional(),
+  label: z.string().nullable().optional(),
+  year: z.number().nullable().optional(),
+  discogsId: z.string().nullable().optional(),
+  discogsUrl: z.string().nullable().optional(),
+  upc: z.string().nullable().optional(),
+  catno: z.string().nullable().optional(),
+  format: z.string().nullable().optional(),
+  formatDesc: z.string().nullable().optional(),
+  speed: z.string().nullable().optional(),
   genres: z.array(z.string()).default([]),
   styles: z.array(z.string()).default([]),
-  coverArtUrl: z.string().optional(),
-  thumbnailUrl: z.string().optional(),
-  country: z.string().optional(),
-  released: z.string().optional(),
-  notes: z.string().optional(),
+  tracklist: z.array(trackSchema).nullable().optional(),
+  coverArtUrl: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
+  released: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 /**

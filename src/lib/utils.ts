@@ -40,6 +40,15 @@ export function discogsReleaseToRecord(release: DiscogsRelease): CreateRecordInp
   const coverArtUrl = release.images?.[0]?.uri || release.thumb;
   const thumbnailUrl = release.images?.[0]?.uri150 || release.thumb;
 
+  // Extract tracklist (filter out headings/sub-tracks without titles)
+  const tracklist = release.tracklist
+    ?.filter(track => track.title && track.type_ !== 'heading')
+    .map(track => ({
+      position: track.position || '',
+      title: track.title,
+      duration: track.duration || '',
+    }));
+
   return {
     title: release.title,
     artist,
@@ -54,6 +63,7 @@ export function discogsReleaseToRecord(release: DiscogsRelease): CreateRecordInp
     speed,
     genres: release.genres || [],
     styles: release.styles || [],
+    tracklist,
     coverArtUrl,
     thumbnailUrl,
     country: release.country,

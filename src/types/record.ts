@@ -2,6 +2,12 @@
  * Type definitions for vinyl records
  */
 
+export interface Track {
+  position: string;
+  title: string;
+  duration: string;
+}
+
 export interface Record {
   id: string;
   title: string;
@@ -17,6 +23,7 @@ export interface Record {
   speed?: string | null;
   genres: string[];
   styles: string[];
+  tracklist?: Track[] | null;
   coverArtUrl?: string | null;
   thumbnailUrl?: string | null;
   country?: string | null;
@@ -43,6 +50,7 @@ export interface CreateRecordInput {
   speed?: string;
   genres?: string[];
   styles?: string[];
+  tracklist?: Track[];
   coverArtUrl?: string;
   thumbnailUrl?: string;
   country?: string;
