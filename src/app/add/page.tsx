@@ -9,6 +9,7 @@ import Tabs, { Tab } from '@/components/ui/Tabs';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import BarcodeScanner from '@/components/scanner/BarcodeScanner';
 import Toast from '@/components/ui/Toast';
@@ -19,7 +20,14 @@ import type { DiscogsSearchResult, DiscogsRelease } from '@/types/discogs';
 export default function AddRecordPage() {
   const router = useRouter();
   const { searchByQuery, searchByBarcode, getRelease, loading } = useDiscogs();
-  const { addRecord } = useRecords();
+  const { records: collection, addRecord } = useRecords();
+
+  // Create a Set of owned discogsIds for quick lookup
+  const ownedDiscogsIds = new Set(
+    collection
+      .filter((r) => r.discogsId)
+      .map((r) => r.discogsId)
+  );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DiscogsSearchResult[]>([]);
@@ -149,37 +157,45 @@ export default function AddRecordPage() {
 
           {searchResults.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {searchResults.map((result) => (
-                <Card
-                  key={result.id}
-                  variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
-                  className="cursor-pointer hover:border-accent-purple transition-all"
-                  onClick={() => handleSelectRecord(result)}
-                >
-                  <div className="space-y-3">
-                    {result.cover_image && (
-                      <div className="relative aspect-square overflow-hidden rounded-lg">
-                        <Image
-                          src={result.cover_image}
-                          alt={result.title}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
+              {searchResults.map((result) => {
+                const isOwned = ownedDiscogsIds.has(result.id.toString());
+                return (
+                  <Card
+                    key={result.id}
+                    variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
+                    className="cursor-pointer hover:border-accent-purple transition-all"
+                    onClick={() => handleSelectRecord(result)}
+                  >
+                    <div className="space-y-3">
+                      {result.cover_image && (
+                        <div className="relative aspect-square overflow-hidden rounded-lg">
+                          <Image
+                            src={result.cover_image}
+                            alt={result.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-vinyl-100 line-clamp-2">
+                          {result.title}
+                        </h4>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-sm text-vinyl-400 truncate">
+                            {result.year}
+                            {result.format && ` • ${result.format[0]}`}
+                          </p>
+                          {isOwned && (
+                            <Badge variant="green">Owned</Badge>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <h4 className="font-medium text-vinyl-100 line-clamp-2">
-                        {result.title}
-                      </h4>
-                      <p className="text-sm text-vinyl-400 mt-1">
-                        {result.year}
-                        {result.format && ` • ${result.format[0]}`}
-                      </p>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
@@ -207,37 +223,45 @@ export default function AddRecordPage() {
 
           {searchResults.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {searchResults.map((result) => (
-                <Card
-                  key={result.id}
-                  variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
-                  className="cursor-pointer hover:border-accent-purple transition-all"
-                  onClick={() => handleSelectRecord(result)}
-                >
-                  <div className="space-y-3">
-                    {result.cover_image && (
-                      <div className="relative aspect-square overflow-hidden rounded-lg">
-                        <Image
-                          src={result.cover_image}
-                          alt={result.title}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
+              {searchResults.map((result) => {
+                const isOwned = ownedDiscogsIds.has(result.id.toString());
+                return (
+                  <Card
+                    key={result.id}
+                    variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
+                    className="cursor-pointer hover:border-accent-purple transition-all"
+                    onClick={() => handleSelectRecord(result)}
+                  >
+                    <div className="space-y-3">
+                      {result.cover_image && (
+                        <div className="relative aspect-square overflow-hidden rounded-lg">
+                          <Image
+                            src={result.cover_image}
+                            alt={result.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-vinyl-100 line-clamp-2">
+                          {result.title}
+                        </h4>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-sm text-vinyl-400 truncate">
+                            {result.year}
+                            {result.format && ` • ${result.format[0]}`}
+                          </p>
+                          {isOwned && (
+                            <Badge variant="green">Owned</Badge>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <h4 className="font-medium text-vinyl-100 line-clamp-2">
-                        {result.title}
-                      </h4>
-                      <p className="text-sm text-vinyl-400 mt-1">
-                        {result.year}
-                        {result.format && ` • ${result.format[0]}`}
-                      </p>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

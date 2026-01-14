@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface BadgeProps {
   children: ReactNode;
-  variant?: 'default' | 'purple' | 'pink' | 'blue' | 'gold';
+  variant?: 'default' | 'purple' | 'pink' | 'blue' | 'gold' | 'green';
   className?: string;
 }
 
@@ -18,6 +18,7 @@ export default function Badge({
     pink: 'bg-accent-pink/20 text-accent-pink border border-accent-pink/30',
     blue: 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30',
     gold: 'bg-accent-gold/20 text-accent-gold border border-accent-gold/30',
+    green: 'bg-green-600 text-white',
   };
 
   return (

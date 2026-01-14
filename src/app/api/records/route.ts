@@ -113,9 +113,13 @@ export async function POST(request: NextRequest) {
 
     // Create record with userId
     console.log(`Creating record for user: ${user!.id} (${user!.email})`);
+
+    // Transform null tracklist to undefined for Prisma
+    const { tracklist, ...rest } = validated;
     const record = await prisma.record.create({
       data: {
-        ...validated,
+        ...rest,
+        tracklist: tracklist ?? undefined,
         userId: user!.id, // Associate with authenticated user
       },
     });
