@@ -15,6 +15,7 @@ export default function BarcodeScanner({
 }: BarcodeScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -33,14 +34,29 @@ export default function BarcodeScanner({
   }, []);
 
   const startScanning = async () => {
-    if (!scannerRef.current || isScanning) return;
+    if (!scannerRef.current || isScanning || isStarting) return;
+
+    // Show container before starting so the library can attach the video
+    setIsStarting(true);
+
+    // Wait for next frame to ensure container is visible
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     try {
       await scannerRef.current.start(
-        { facingMode: 'environment' }, // Use back camera
+        { facingMode: 'environment' },
         {
-          fps: 10, // Frames per second
-          qrbox: { width: 250, height: 250 }, // Scanning box size
+          fps: 15,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            // Make qrbox 80% of the smaller dimension for larger scan area
+            const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
+            const size = Math.floor(minDimension * 0.8);
+            return { width: size, height: size };
+          },
+          // Use native BarcodeDetector API if available (better accuracy)
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true,
+          },
         },
         (decodedText) => {
           // Successful scan
@@ -53,8 +69,10 @@ export default function BarcodeScanner({
       );
 
       setIsScanning(true);
+      setIsStarting(false);
       setHasPermission(true);
     } catch (err) {
+      setIsStarting(false);
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to start scanner';
 
@@ -88,13 +106,13 @@ export default function BarcodeScanner({
       <div className="relative">
         <div
           id="barcode-scanner"
-          className={`rounded-lg overflow-hidden ${
-            isScanning ? 'block' : 'hidden'
+          className={`rounded-lg overflow-hidden max-w-md mx-auto ${
+            isScanning || isStarting ? 'block' : 'hidden'
           }`}
         />
 
         {/* Placeholder when not scanning */}
-        {!isScanning && (
+        {!isScanning && !isStarting && (
           <div className="aspect-square max-w-md mx-auto bg-vinyl-800 rounded-lg border-2 border-dashed border-vinyl-600 flex items-center justify-center">
             <div className="text-center p-8">
               <svg
@@ -127,8 +145,9 @@ export default function BarcodeScanner({
           onClick={isScanning ? stopScanning : startScanning}
           variant={isScanning ? 'danger' : 'primary'}
           size="lg"
+          disabled={isStarting}
         >
-          {isScanning ? 'Stop Scanner' : 'Start Scanner'}
+          {isStarting ? 'Starting...' : isScanning ? 'Stop Scanner' : 'Start Scanner'}
         </Button>
       </div>
 
