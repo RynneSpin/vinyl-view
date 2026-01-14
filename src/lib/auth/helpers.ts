@@ -35,13 +35,34 @@ async function ensureUserExists(authUser: {
   name?: string | null;
 }) {
   try {
-    // Check if user exists in database
+    // Check if user exists by ID
     let user = await prisma.user.findUnique({
       where: { id: authUser.id },
     });
 
-    // If user doesn't exist, create them
-    if (!user) {
+    if (user) {
+      return user;
+    }
+
+    // User not found by ID - check if they exist by email
+    // (handles case where user re-registered with new auth ID)
+    const existingByEmail = await prisma.user.findUnique({
+      where: { email: authUser.email },
+    });
+
+    if (existingByEmail) {
+      // Update existing user's ID to match new auth ID
+      console.log(`Updating user ID for: ${authUser.email} (${existingByEmail.id} -> ${authUser.id})`);
+      user = await prisma.user.update({
+        where: { email: authUser.email },
+        data: {
+          id: authUser.id,
+          name: authUser.name,
+        },
+      });
+      console.log(`✓ User ID updated successfully`);
+    } else {
+      // Create new user
       console.log(`Creating new user record for: ${authUser.email} (${authUser.id})`);
       user = await prisma.user.create({
         data: {
