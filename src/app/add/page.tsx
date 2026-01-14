@@ -9,6 +9,7 @@ import Tabs, { Tab } from '@/components/ui/Tabs';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 import BarcodeScanner from '@/components/scanner/BarcodeScanner';
 import Toast from '@/components/ui/Toast';
 import Spinner from '@/components/ui/Spinner';
@@ -233,31 +234,32 @@ export default function AddRecordPage() {
         <Tabs tabs={tabs} />
       </Card>
 
-      {/* Selected Record Preview */}
-      {selectedRecord && (
-        <Card variant="bordered" className="mt-6 p-6">
-          <h3 className="text-xl font-semibold text-vinyl-50 mb-4">
-            Selected Record
-          </h3>
+      {/* Selected Record Modal */}
+      <Modal
+        isOpen={!!selectedRecord}
+        onClose={() => setSelectedRecord(null)}
+        title="Add to Collection"
+        size="lg"
+      >
+        {selectedRecord && (
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            {/* Album Art */}
+            {selectedRecord.cover_image && (
+              <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 mx-auto sm:mx-0">
+                <Image
+                  src={selectedRecord.cover_image}
+                  alt={selectedRecord.title}
+                  fill
+                  className="object-cover rounded-lg"
+                  sizes="160px"
+                />
+              </div>
+            )}
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              {selectedRecord.cover_image && (
-                <div className="relative aspect-square overflow-hidden rounded-lg">
-                  <Image
-                    src={selectedRecord.cover_image}
-                    alt={selectedRecord.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-2xl font-bold text-vinyl-50">
+            {/* Details */}
+            <div className="flex-1 space-y-4">
+              <div className="text-center sm:text-left">
+                <h4 className="text-xl sm:text-2xl font-bold text-vinyl-50">
                   {selectedRecord.title}
                 </h4>
                 <p className="text-vinyl-300 mt-1">
@@ -291,8 +293,8 @@ export default function AddRecordPage() {
               </div>
             </div>
           </div>
-        </Card>
-      )}
+        )}
+      </Modal>
 
       {/* Toast Notifications */}
       {toast && (
