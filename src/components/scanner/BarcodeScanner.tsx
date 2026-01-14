@@ -53,10 +53,6 @@ export default function BarcodeScanner({
             const size = Math.floor(minDimension * 0.8);
             return { width: size, height: size };
           },
-          // Use native BarcodeDetector API if available (better accuracy)
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true,
-          },
         },
         (decodedText) => {
           // Successful scan
