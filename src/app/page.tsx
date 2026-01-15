@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRecords } from '@/hooks/useRecords';
 import RecordStats from '@/components/records/RecordStats';
+import VinylFingerprint from '@/components/records/VinylFingerprint';
 import RecordFilters from '@/components/records/RecordFilters';
 import RecordGrid from '@/components/records/RecordGrid';
 import Spinner from '@/components/ui/Spinner';
@@ -64,6 +65,12 @@ export default function Home() {
       </div>
 
       <RecordStats records={records} />
+
+      {records.length > 0 && (
+        <div className="mb-6 sm:mb-8">
+          <VinylFingerprint records={records} />
+        </div>
+      )}
 
       {records.length > 0 && (
         <RecordFilters records={records} onFilterChange={handleFilterChange} />
