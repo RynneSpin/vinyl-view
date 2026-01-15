@@ -140,15 +140,15 @@ export default function AddRecordPage() {
         </svg>
       ),
       content: (
-        <div className="space-y-6">
-          <form onSubmit={handleSearch} className="flex gap-3">
+        <div className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by artist, album, or catalog number..."
+              placeholder="Search artist, album..."
               className="flex-1"
             />
-            <Button type="submit" isLoading={loading}>
+            <Button type="submit" isLoading={loading} className="w-full sm:w-auto">
               Search
             </Button>
           </form>
@@ -156,17 +156,17 @@ export default function AddRecordPage() {
           {loading && <Spinner />}
 
           {searchResults.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               {searchResults.map((result) => {
                 const isOwned = ownedDiscogsIds.has(result.id.toString());
                 return (
                   <Card
                     key={result.id}
                     variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
-                    className="cursor-pointer hover:border-accent-purple transition-all"
+                    className="cursor-pointer hover:border-accent-purple transition-all p-2 sm:p-4"
                     onClick={() => handleSelectRecord(result)}
                   >
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {result.cover_image && (
                         <div className="relative aspect-square overflow-hidden rounded-lg">
                           <Image
@@ -174,21 +174,21 @@ export default function AddRecordPage() {
                             alt={result.title}
                             fill
                             className="object-cover"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           />
                         </div>
                       )}
                       <div>
-                        <h4 className="font-medium text-vinyl-100 line-clamp-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-vinyl-100 line-clamp-2">
                           {result.title}
                         </h4>
-                        <div className="flex items-center justify-between gap-2 mt-1">
-                          <p className="text-sm text-vinyl-400 truncate">
+                        <div className="flex items-center justify-between gap-1 sm:gap-2 mt-1">
+                          <p className="text-xs text-vinyl-400 truncate">
                             {result.year}
-                            {result.format && ` • ${result.format[0]}`}
+                            {result.format && <span className="hidden sm:inline"> • {result.format[0]}</span>}
                           </p>
                           {isOwned && (
-                            <Badge variant="green">Owned</Badge>
+                            <Badge variant="green" className="text-xs px-1.5 py-0.5">Owned</Badge>
                           )}
                         </div>
                       </div>
@@ -215,24 +215,24 @@ export default function AddRecordPage() {
         </svg>
       ),
       content: (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <BarcodeScanner
             onScan={handleBarcodeScan}
             onError={(err) => setToast({ message: err, type: 'error' })}
           />
 
           {searchResults.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               {searchResults.map((result) => {
                 const isOwned = ownedDiscogsIds.has(result.id.toString());
                 return (
                   <Card
                     key={result.id}
                     variant={selectedResult?.id === result.id ? 'bordered' : 'default'}
-                    className="cursor-pointer hover:border-accent-purple transition-all"
+                    className="cursor-pointer hover:border-accent-purple transition-all p-2 sm:p-4"
                     onClick={() => handleSelectRecord(result)}
                   >
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {result.cover_image && (
                         <div className="relative aspect-square overflow-hidden rounded-lg">
                           <Image
@@ -240,21 +240,21 @@ export default function AddRecordPage() {
                             alt={result.title}
                             fill
                             className="object-cover"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           />
                         </div>
                       )}
                       <div>
-                        <h4 className="font-medium text-vinyl-100 line-clamp-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-vinyl-100 line-clamp-2">
                           {result.title}
                         </h4>
-                        <div className="flex items-center justify-between gap-2 mt-1">
-                          <p className="text-sm text-vinyl-400 truncate">
+                        <div className="flex items-center justify-between gap-1 sm:gap-2 mt-1">
+                          <p className="text-xs text-vinyl-400 truncate">
                             {result.year}
-                            {result.format && ` • ${result.format[0]}`}
+                            {result.format && <span className="hidden sm:inline"> • {result.format[0]}</span>}
                           </p>
                           {isOwned && (
-                            <Badge variant="green">Owned</Badge>
+                            <Badge variant="green" className="text-xs px-1.5 py-0.5">Owned</Badge>
                           )}
                         </div>
                       </div>
@@ -271,14 +271,14 @@ export default function AddRecordPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-vinyl-50 mb-2">Add Record</h1>
-        <p className="text-vinyl-400">
+      <div className="mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-vinyl-50 mb-1 sm:mb-2">Add Record</h1>
+        <p className="text-sm sm:text-base text-vinyl-400">
           Search for a vinyl or scan its barcode to add to your collection
         </p>
       </div>
 
-      <Card variant="elevated" className="p-6">
+      <Card variant="elevated" className="p-3 sm:p-6">
         <Tabs tabs={tabs} />
       </Card>
 
@@ -290,47 +290,47 @@ export default function AddRecordPage() {
         size="lg"
       >
         {loadingRelease ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-8 sm:py-12">
             <Spinner size="lg" />
           </div>
         ) : fullRelease ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Header with album art and basic info */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
               {/* Album Art */}
               {(fullRelease.images?.[0]?.uri || fullRelease.thumb) && (
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 mx-auto sm:mx-0">
+                <div className="relative w-24 h-24 sm:w-40 sm:h-40 flex-shrink-0 mx-auto sm:mx-0">
                   <Image
                     src={fullRelease.images?.[0]?.uri || fullRelease.thumb || ''}
                     alt={fullRelease.title}
                     fill
                     className="object-cover rounded-lg"
-                    sizes="160px"
+                    sizes="(max-width: 640px) 96px, 160px"
                   />
                 </div>
               )}
 
               {/* Details */}
               <div className="flex-1 text-center sm:text-left">
-                <h4 className="text-xl sm:text-2xl font-bold text-vinyl-50">
+                <h4 className="text-lg sm:text-2xl font-bold text-vinyl-50 line-clamp-2">
                   {fullRelease.title}
                 </h4>
-                <p className="text-lg text-vinyl-200 mt-1">
+                <p className="text-base sm:text-lg text-vinyl-200 mt-0.5 sm:mt-1">
                   {fullRelease.artists?.[0]?.name || 'Unknown Artist'}
                 </p>
-                <p className="text-vinyl-400 mt-1">
+                <p className="text-sm sm:text-base text-vinyl-400 mt-0.5 sm:mt-1">
                   {fullRelease.year}
                   {fullRelease.country && ` • ${fullRelease.country}`}
                 </p>
                 {fullRelease.labels?.[0] && (
-                  <p className="text-sm text-vinyl-400 mt-2">
+                  <p className="text-xs sm:text-sm text-vinyl-400 mt-1 sm:mt-2">
                     <span className="text-vinyl-500">Label:</span>{' '}
                     {fullRelease.labels[0].name}
                     {fullRelease.labels[0].catno && ` (${fullRelease.labels[0].catno})`}
                   </p>
                 )}
                 {fullRelease.genres && fullRelease.genres.length > 0 && (
-                  <p className="text-sm text-vinyl-400 mt-1">
+                  <p className="text-xs sm:text-sm text-vinyl-400 mt-1">
                     {fullRelease.genres.join(', ')}
                   </p>
                 )}
@@ -339,22 +339,22 @@ export default function AddRecordPage() {
 
             {/* Tracklist */}
             {fullRelease.tracklist && fullRelease.tracklist.length > 0 && (
-              <div className="border-t border-vinyl-700 pt-4">
-                <h5 className="text-sm font-medium text-vinyl-300 mb-2">Tracklist</h5>
-                <div className="max-h-48 overflow-y-auto space-y-1">
+              <div className="border-t border-vinyl-700 pt-3 sm:pt-4">
+                <h5 className="text-xs sm:text-sm font-medium text-vinyl-300 mb-2">Tracklist</h5>
+                <div className="max-h-36 sm:max-h-48 overflow-y-auto space-y-0.5 sm:space-y-1">
                   {fullRelease.tracklist.map((track, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 text-sm py-1"
+                      className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm py-0.5 sm:py-1"
                     >
-                      <span className="text-vinyl-500 w-8 flex-shrink-0">
+                      <span className="text-vinyl-500 w-6 sm:w-8 flex-shrink-0 font-mono">
                         {track.position || '-'}
                       </span>
                       <span className="text-vinyl-100 flex-1 truncate">
                         {track.title}
                       </span>
                       {track.duration && (
-                        <span className="text-vinyl-500 flex-shrink-0">
+                        <span className="text-vinyl-500 flex-shrink-0 font-mono text-xs">
                           {track.duration}
                         </span>
                       )}
@@ -365,22 +365,23 @@ export default function AddRecordPage() {
             )}
 
             {/* Notes input */}
-            <div className="border-t border-vinyl-700 pt-4">
+            <div className="border-t border-vinyl-700 pt-3 sm:pt-4">
               <Input
                 label="Notes (optional)"
-                placeholder="Add personal notes about this record..."
+                placeholder="Add notes..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="text-sm"
               />
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleAddRecord} isLoading={loading} className="flex-1">
-                Add to Collection
-              </Button>
-              <Button variant="ghost" onClick={handleCloseModal}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
+              <Button variant="ghost" onClick={handleCloseModal} className="sm:order-1">
                 Cancel
+              </Button>
+              <Button onClick={handleAddRecord} isLoading={loading} className="flex-1 sm:order-2">
+                Add to Collection
               </Button>
             </div>
           </div>

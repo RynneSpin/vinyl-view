@@ -54,11 +54,11 @@ export default function Home() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-vinyl-50 mb-2">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-vinyl-50 mb-1 sm:mb-2">
           Your Vinyl Collection
         </h1>
-        <p className="text-vinyl-400">
+        <p className="text-sm sm:text-base text-vinyl-400">
           Browse and manage your vinyl records
         </p>
       </div>

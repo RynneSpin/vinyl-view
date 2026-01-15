@@ -38,26 +38,26 @@ export default function RecordCard({ record, index }: RecordCardProps) {
           </div>
 
           {/* Info */}
-          <div className="p-4">
-            <h3 className="font-semibold text-vinyl-50 line-clamp-1 group-hover:text-accent-purple transition-colors">
+          <div className="p-3 sm:p-4">
+            <h3 className="text-sm sm:text-base font-semibold text-vinyl-50 line-clamp-1 group-hover:text-accent-purple transition-colors">
               {record.title}
             </h3>
-            <p className="text-sm text-vinyl-300 line-clamp-1 mt-1">
+            <p className="text-xs sm:text-sm text-vinyl-300 line-clamp-1 mt-0.5 sm:mt-1">
               {record.artist}
             </p>
 
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center gap-2 text-xs text-vinyl-400">
+            <div className="flex items-center justify-between mt-2 sm:mt-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-vinyl-400">
                 {record.year && <span>{record.year}</span>}
                 {record.format && (
                   <>
-                    <span>•</span>
-                    <span>{record.format}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline">{record.format}</span>
                   </>
                 )}
               </div>
               {record.genres.length > 0 && (
-                <Badge variant="purple" className="text-xs">
+                <Badge variant="purple" className="text-xs px-1.5 sm:px-2.5">
                   {record.genres[0]}
                 </Badge>
               )}

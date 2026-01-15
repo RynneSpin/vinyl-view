@@ -83,12 +83,12 @@ function VerifyEmailForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card variant="elevated" className="w-full max-w-md p-8">
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg
-                className="w-8 h-8 text-green-500"
+                className="w-7 h-7 sm:w-8 sm:h-8 text-green-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -101,10 +101,10 @@ function VerifyEmailForm() {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-vinyl-50 mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-vinyl-50 mb-1 sm:mb-2">
               Email Verified!
             </h1>
-            <p className="text-vinyl-400">
+            <p className="text-sm sm:text-base text-vinyl-400">
               Redirecting you to sign in...
             </p>
           </div>
@@ -114,19 +114,19 @@ function VerifyEmailForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <Card variant="elevated" className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-vinyl-50 mb-2">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-vinyl-50 mb-1 sm:mb-2">
             Verify Your Email
           </h1>
-          <p className="text-vinyl-400">
-            We sent a verification code to{" "}
-            <span className="text-vinyl-200 font-medium">{email}</span>
+          <p className="text-sm sm:text-base text-vinyl-400">
+            We sent a code to{" "}
+            <span className="text-vinyl-200 font-medium break-all">{email}</span>
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <Input
             type="text"
             label="Verification Code"
@@ -177,10 +177,10 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center px-4">
-          <Card variant="elevated" className="w-full max-w-md p-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
             <div className="text-center">
-              <p className="text-vinyl-400">Loading...</p>
+              <p className="text-sm sm:text-base text-vinyl-400">Loading...</p>
             </div>
           </Card>
         </div>

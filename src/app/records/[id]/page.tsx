@@ -129,12 +129,12 @@ export default function RecordDetailPage({
       <Button
         variant="ghost"
         onClick={() => router.push('/')}
-        className="mb-6"
+        className="mb-4 sm:mb-6 text-sm sm:text-base"
       >
-        ← Back to Collection
+        ← Back
       </Button>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-8">
         {/* Album Art */}
         <Card variant="elevated" className="p-0 overflow-hidden">
           <div className="relative aspect-square">
@@ -148,66 +148,66 @@ export default function RecordDetailPage({
             />
           </div>
 
-          {/* Vinyl Disc Animation */}
-          <div className="relative -mt-32 flex justify-end pr-4">
+          {/* Vinyl Disc Animation - hidden on small mobile, smaller on medium */}
+          <div className="hidden sm:flex relative -mt-20 md:-mt-32 justify-end pr-4">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-              className="w-32 h-32 rounded-full bg-gradient-to-br from-vinyl-800 via-vinyl-900 to-black border-4 border-vinyl-700 shadow-2xl"
+              className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-vinyl-800 via-vinyl-900 to-black border-2 md:border-4 border-vinyl-700 shadow-2xl"
             >
-              <div className="w-full h-full rounded-full border-[6px] border-vinyl-950 flex items-center justify-center">
-                <div className="w-6 h-6 rounded-full bg-vinyl-800" />
+              <div className="w-full h-full rounded-full border-4 md:border-[6px] border-vinyl-950 flex items-center justify-center">
+                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-vinyl-800" />
               </div>
             </motion.div>
           </div>
         </Card>
 
         {/* Details */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <h1 className="text-4xl font-bold text-vinyl-50 mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-vinyl-50 mb-1 sm:mb-2">
               {record.title}
             </h1>
-            <p className="text-2xl text-vinyl-300">{record.artist}</p>
+            <p className="text-lg sm:text-xl md:text-2xl text-vinyl-300">{record.artist}</p>
           </div>
 
           {/* Metadata Grid */}
-          <Card variant="bordered">
-            <div className="grid grid-cols-2 gap-4">
+          <Card variant="bordered" className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {record.year && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Year</p>
-                  <p className="text-vinyl-100 font-medium">{record.year}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Year</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium">{record.year}</p>
                 </div>
               )}
               {record.label && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Label</p>
-                  <p className="text-vinyl-100 font-medium">{record.label}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Label</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium truncate">{record.label}</p>
                 </div>
               )}
               {record.format && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Format</p>
-                  <p className="text-vinyl-100 font-medium">{record.format}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Format</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium">{record.format}</p>
                 </div>
               )}
               {record.country && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Country</p>
-                  <p className="text-vinyl-100 font-medium">{record.country}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Country</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium">{record.country}</p>
                 </div>
               )}
               {record.catno && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Catalog #</p>
-                  <p className="text-vinyl-100 font-medium">{record.catno}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Catalog #</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium truncate">{record.catno}</p>
                 </div>
               )}
               {record.speed && (
                 <div>
-                  <p className="text-sm text-vinyl-400">Speed</p>
-                  <p className="text-vinyl-100 font-medium">{record.speed}</p>
+                  <p className="text-xs sm:text-sm text-vinyl-400">Speed</p>
+                  <p className="text-sm sm:text-base text-vinyl-100 font-medium">{record.speed}</p>
                 </div>
               )}
             </div>
@@ -215,13 +215,13 @@ export default function RecordDetailPage({
 
           {/* Genres & Styles */}
           {(record.genres.length > 0 || record.styles.length > 0) && (
-            <Card variant="default">
+            <Card variant="default" className="p-3 sm:p-4">
               {record.genres.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-sm text-vinyl-400 mb-2">Genres</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mb-2 sm:mb-3">
+                  <p className="text-xs sm:text-sm text-vinyl-400 mb-1.5 sm:mb-2">Genres</p>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {record.genres.map((genre) => (
-                      <Badge key={genre} variant="purple">
+                      <Badge key={genre} variant="purple" className="text-xs">
                         {genre}
                       </Badge>
                     ))}
@@ -230,10 +230,10 @@ export default function RecordDetailPage({
               )}
               {record.styles.length > 0 && (
                 <div>
-                  <p className="text-sm text-vinyl-400 mb-2">Styles</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-xs sm:text-sm text-vinyl-400 mb-1.5 sm:mb-2">Styles</p>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {record.styles.map((style) => (
-                      <Badge key={style} variant="blue">
+                      <Badge key={style} variant="blue" className="text-xs">
                         {style}
                       </Badge>
                     ))}
@@ -245,22 +245,22 @@ export default function RecordDetailPage({
 
           {/* Tracklist */}
           {record.tracklist && record.tracklist.length > 0 && (
-            <Card variant="default">
-              <p className="text-sm text-vinyl-400 mb-3">Tracklist</p>
-              <div className="space-y-1">
+            <Card variant="default" className="p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-vinyl-400 mb-2 sm:mb-3">Tracklist</p>
+              <div className="space-y-0.5 sm:space-y-1">
                 {record.tracklist.map((track, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 text-sm py-1.5 border-b border-vinyl-800 last:border-0"
+                    className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm py-1 sm:py-1.5 border-b border-vinyl-800 last:border-0"
                   >
-                    <span className="text-vinyl-500 w-8 flex-shrink-0 font-mono">
+                    <span className="text-vinyl-500 w-6 sm:w-8 flex-shrink-0 font-mono">
                       {track.position || '-'}
                     </span>
-                    <span className="text-vinyl-100 flex-1">
+                    <span className="text-vinyl-100 flex-1 truncate">
                       {track.title}
                     </span>
                     {track.duration && (
-                      <span className="text-vinyl-500 flex-shrink-0 font-mono">
+                      <span className="text-vinyl-500 flex-shrink-0 font-mono text-xs">
                         {track.duration}
                       </span>
                     )}
@@ -271,14 +271,15 @@ export default function RecordDetailPage({
           )}
 
           {/* Notes */}
-          <Card variant="default">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium text-vinyl-300">Personal Notes</p>
+          <Card variant="default" className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <p className="text-xs sm:text-sm font-medium text-vinyl-300">Personal Notes</p>
               {!isEditing && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsEditing(true)}
+                  className="text-xs sm:text-sm"
                 >
                   Edit
                 </Button>
@@ -286,16 +287,16 @@ export default function RecordDetailPage({
             </div>
 
             {isEditing ? (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <textarea
                   value={editedNotes}
                   onChange={(e) => setEditedNotes(e.target.value)}
-                  className="w-full px-4 py-2 bg-vinyl-800 border border-vinyl-700 rounded-lg text-vinyl-50 placeholder-vinyl-400 focus:outline-none focus:ring-2 focus:ring-accent-purple resize-none"
-                  rows={4}
+                  className="w-full px-3 sm:px-4 py-2 bg-vinyl-800 border border-vinyl-700 rounded-lg text-vinyl-50 placeholder-vinyl-400 focus:outline-none focus:ring-2 focus:ring-accent-purple resize-none text-sm sm:text-base"
+                  rows={3}
                   placeholder="Add your notes..."
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleSaveNotes}>
+                  <Button size="sm" onClick={handleSaveNotes} className="text-xs sm:text-sm">
                     Save
                   </Button>
                   <Button
@@ -305,21 +306,22 @@ export default function RecordDetailPage({
                       setIsEditing(false);
                       setEditedNotes(record.notes || '');
                     }}
+                    className="text-xs sm:text-sm"
                   >
                     Cancel
                   </Button>
                 </div>
               </div>
             ) : (
-              <p className="text-vinyl-100">
+              <p className="text-sm sm:text-base text-vinyl-100">
                 {record.notes || 'No notes yet'}
               </p>
             )}
           </Card>
 
           {/* Additional Info */}
-          <Card variant="bordered">
-            <div className="space-y-2 text-sm">
+          <Card variant="bordered" className="p-3 sm:p-4">
+            <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-vinyl-400">Added to collection</span>
                 <span className="text-vinyl-200">
@@ -335,7 +337,7 @@ export default function RecordDetailPage({
                     className="text-accent-purple hover:text-accent-purple/80 transition-colors inline-flex items-center gap-1"
                   >
                     View on Discogs
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -352,7 +354,7 @@ export default function RecordDetailPage({
           {/* Delete Button */}
           <Button
             variant="danger"
-            className="w-full"
+            className="w-full text-sm sm:text-base"
             onClick={handleDelete}
           >
             Delete from Collection

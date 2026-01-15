@@ -29,21 +29,21 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'flex items-center gap-2 px-6 py-3 font-medium transition-colors',
+              'flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-medium transition-colors flex-1 sm:flex-none',
               'border-b-2 -mb-px',
               activeTab === tab.id
                 ? 'border-accent-purple text-accent-purple'
                 : 'border-transparent text-vinyl-400 hover:text-vinyl-200'
             )}
           >
-            {tab.icon}
-            {tab.label}
+            {tab.icon && <span className="w-4 h-4 sm:w-5 sm:h-5">{tab.icon}</span>}
+            <span className="truncate">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="mt-6">{activeContent}</div>
+      <div className="mt-4 sm:mt-6">{activeContent}</div>
     </div>
   );
 }

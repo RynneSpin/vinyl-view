@@ -65,16 +65,16 @@ function SignInForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <Card variant="elevated" className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-vinyl-50 mb-2">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-vinyl-50 mb-1 sm:mb-2">
             Welcome Back
           </h1>
-          <p className="text-vinyl-400">Sign in to your vinyl collection</p>
+          <p className="text-sm sm:text-base text-vinyl-400">Sign in to your vinyl collection</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <Input
             type="email"
             label="Email"
@@ -126,10 +126,10 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center px-4">
-          <Card variant="elevated" className="w-full max-w-md p-8">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
             <div className="text-center">
-              <p className="text-vinyl-400">Loading...</p>
+              <p className="text-sm sm:text-base text-vinyl-400">Loading...</p>
             </div>
           </Card>
         </div>

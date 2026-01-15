@@ -77,16 +77,16 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <Card variant="elevated" className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-vinyl-50 mb-2">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <Card variant="elevated" className="w-full max-w-md p-5 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-vinyl-50 mb-1 sm:mb-2">
             Create Account
           </h1>
-          <p className="text-vinyl-400">Start building your vinyl collection</p>
+          <p className="text-sm sm:text-base text-vinyl-400">Start building your vinyl collection</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <Input
             type="text"
             label="Name"
