@@ -46,6 +46,8 @@ export async function GET(request: NextRequest) {
     const order = (searchParams.get('order') as 'asc' | 'desc') || 'desc';
     const genre = searchParams.get('genre');
     const artist = searchParams.get('artist');
+    const decade = searchParams.get('decade');
+    const country = searchParams.get('country');
 
     // Build where clause with userId filter
     const where: any = {
@@ -62,6 +64,19 @@ export async function GET(request: NextRequest) {
         contains: artist,
         mode: 'insensitive',
       };
+    }
+    if (decade) {
+      // Parse "1980s" → year range 1980-1989
+      const decadeStart = parseInt(decade.replace('s', ''), 10);
+      if (!isNaN(decadeStart)) {
+        where.year = {
+          gte: decadeStart,
+          lt: decadeStart + 10,
+        };
+      }
+    }
+    if (country) {
+      where.country = country;
     }
 
     const records = await prisma.record.findMany({

@@ -1,11 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Record } from '@/types/record';
+import type { Record, FingerprintFilter } from '@/types/record';
 import Card from '../ui/Card';
 
 interface VinylFingerprintProps {
   records: Record[];
+  activeFilters?: FingerprintFilter[];
+  onSegmentClick?: (filter: FingerprintFilter) => void;
 }
 
 interface CategoryData {
@@ -30,7 +32,11 @@ interface TooltipData {
   color: string;
 }
 
-export default function VinylFingerprint({ records }: VinylFingerprintProps) {
+export default function VinylFingerprint({
+  records,
+  activeFilters = [],
+  onSegmentClick
+}: VinylFingerprintProps) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
   const data = useMemo(() => {
@@ -279,17 +285,27 @@ export default function VinylFingerprint({ records }: VinylFingerprintProps) {
                   Z
                 `;
 
+                const isActive = activeFilters.some(
+                  (f) => f.type === axis.label.toLowerCase() && f.value === item.name
+                );
+
                 return (
                   <g key={`${axis.label}-${item.name}`} className="cursor-pointer">
                     <path
                       d={pathD}
                       fill={axis.color}
-                      fillOpacity={0.2 + (item.percentage / 100) * 0.5}
+                      fillOpacity={isActive ? 0.9 : 0.2 + (item.percentage / 100) * 0.5}
                       stroke={axis.color}
-                      strokeWidth="0.5"
-                      strokeOpacity="0.6"
+                      strokeWidth={isActive ? '2.5' : '0.5'}
+                      strokeOpacity={isActive ? 1 : 0.6}
                       style={{ mixBlendMode: 'screen' }}
                       className="transition-all duration-300 hover:fill-opacity-80 hover:stroke-opacity-100 hover:stroke-[1.5px]"
+                      onClick={() => {
+                        onSegmentClick?.({
+                          type: axis.label.toLowerCase() as 'genre' | 'decade' | 'country',
+                          value: item.name,
+                        });
+                      }}
                       onMouseEnter={(e) => {
                         const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
                         if (rect) {
@@ -434,7 +450,7 @@ export default function VinylFingerprint({ records }: VinylFingerprintProps) {
       </div>
 
       <p className="text-center text-[11px] sm:text-xs text-vinyl-500 mt-4">
-        Your Vinyl Fingerprint — hover over segments for details
+        Your Vinyl Fingerprint — click a segment to filter your collection
       </p>
     </Card>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Record, RecordFilters, CreateRecordInput } from '@/types/record';
 
@@ -10,16 +10,24 @@ export function useRecords(filters?: RecordFilters) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Serialize filters to avoid object reference issues
+  const filtersKey = JSON.stringify(filters ?? {});
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
+      const currentFilters = filtersRef.current;
       const params = new URLSearchParams();
-      if (filters?.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters?.order) params.append('order', filters.order);
-      if (filters?.genre) params.append('genre', filters.genre);
-      if (filters?.artist) params.append('artist', filters.artist);
+      if (currentFilters?.sortBy) params.append('sortBy', currentFilters.sortBy);
+      if (currentFilters?.order) params.append('order', currentFilters.order);
+      if (currentFilters?.genre) params.append('genre', currentFilters.genre);
+      if (currentFilters?.artist) params.append('artist', currentFilters.artist);
+      if (currentFilters?.decade) params.append('decade', currentFilters.decade);
+      if (currentFilters?.country) params.append('country', currentFilters.country);
 
       const response = await fetch(`/api/records?${params.toString()}`);
 
@@ -40,7 +48,7 @@ export function useRecords(filters?: RecordFilters) {
     } finally {
       setLoading(false);
     }
-  }, [filters, router]);
+  }, [filtersKey, router]);
 
   useEffect(() => {
     fetchRecords();

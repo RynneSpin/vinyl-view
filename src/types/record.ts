@@ -70,6 +70,13 @@ export interface RecordFilters {
   genre?: string;
   artist?: string;
   year?: number;
+  decade?: string;
+  country?: string;
   sortBy?: 'dateAdded' | 'artist' | 'title' | 'year';
   order?: 'asc' | 'desc';
+}
+
+export interface FingerprintFilter {
+  type: 'genre' | 'decade' | 'country';
+  value: string;
 }
