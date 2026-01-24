@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRecords } from '@/hooks/useRecords';
 import type { FingerprintFilter } from '@/types/record';
 import RecordStats from '@/components/records/RecordStats';
-import VinylFingerprint from '@/components/records/VinylFingerprint';
+import CollectionVisualizations from '@/components/records/CollectionVisualizations';
 import RecordFilters from '@/components/records/RecordFilters';
 import ActiveFingerprintFilter from '@/components/records/ActiveFingerprintFilter';
 import RecordGrid from '@/components/records/RecordGrid';
@@ -140,7 +140,7 @@ export default function Home() {
 
       {allRecords.length > 0 && (
         <div className="mb-6 sm:mb-8">
-          <VinylFingerprint
+          <CollectionVisualizations
             records={allRecords}
             activeFilters={fingerprintFilters}
             onSegmentClick={handleFingerprintClick}
