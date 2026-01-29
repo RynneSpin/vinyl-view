@@ -1,10 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Fuse from 'fuse.js';
 import { useDiscogs } from '@/hooks/useDiscogs';
 import { useRecords } from '@/hooks/useRecords';
 import { discogsReleaseToRecord } from '@/lib/utils';
+
+// Suggestion type for typeahead
+interface Suggestion {
+  text: string;
+  type: 'collection' | 'discogs';
+  subtext?: string;
+}
 import Tabs, { Tab } from '@/components/ui/Tabs';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -30,28 +38,254 @@ export default function AddRecordPage() {
   );
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<DiscogsSearchResult[]>([]);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
+  const [rawSearchResults, setRawSearchResults] = useState<DiscogsSearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<DiscogsSearchResult | null>(null);
+
+  // Typeahead state
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Client-side cache for Discogs suggestions to reduce API calls
+  const suggestionsCacheRef = useRef<Map<string, Suggestion[]>>(new Map());
+
+  // Fuzzy search configuration for ranking Discogs results
+  const fuseOptions = {
+    keys: [
+      { name: 'title', weight: 0.7 },
+      { name: 'format', weight: 0.1 },
+    ],
+    threshold: 0.6, // Allow fuzzy matches (0 = exact, 1 = match anything)
+    includeScore: true,
+    ignoreLocation: true, // Search anywhere in the string
+  };
+
+  // Build collection search index for instant suggestions
+  const collectionIndex = useMemo(() => {
+    const items: { text: string; subtext: string }[] = [];
+    const seenArtists = new Set<string>();
+    const seenAlbums = new Set<string>();
+
+    for (const record of collection) {
+      // Add unique artists
+      if (!seenArtists.has(record.artist.toLowerCase())) {
+        seenArtists.add(record.artist.toLowerCase());
+        items.push({ text: record.artist, subtext: 'Artist in your collection' });
+      }
+      // Add unique album titles with artist
+      const albumKey = `${record.title.toLowerCase()}-${record.artist.toLowerCase()}`;
+      if (!seenAlbums.has(albumKey)) {
+        seenAlbums.add(albumKey);
+        items.push({ text: `${record.artist} - ${record.title}`, subtext: 'Album in your collection' });
+      }
+    }
+    return items;
+  }, [collection]);
+
+  const collectionFuse = useMemo(() => {
+    return new Fuse(collectionIndex, {
+      keys: ['text'],
+      threshold: 0.4,
+      includeScore: true,
+    });
+  }, [collectionIndex]);
+
+  // Fetch Discogs suggestions (debounced, cached)
+  const fetchDiscogsSuggestions = useCallback(async (query: string) => {
+    // Only fetch from Discogs after 3+ characters to reduce API calls
+    if (query.length < 3) return;
+
+    const cacheKey = query.toLowerCase().trim();
+
+    // Check cache first
+    const cached = suggestionsCacheRef.current.get(cacheKey);
+    if (cached) {
+      setSuggestions((prev) => {
+        const collectionSuggestions = prev.filter((s) => s.type === 'collection');
+        return [...collectionSuggestions, ...cached];
+      });
+      return;
+    }
+
+    setLoadingSuggestions(true);
+    try {
+      const response = await searchByQuery(query);
+      if (response.results && response.results.length > 0) {
+        const discogsSuggestions: Suggestion[] = response.results.slice(0, 5).map((r) => ({
+          text: r.title,
+          type: 'discogs' as const,
+          subtext: r.year ? `${r.year}` : 'Discogs',
+        }));
+
+        // Cache the results
+        suggestionsCacheRef.current.set(cacheKey, discogsSuggestions);
+
+        setSuggestions((prev) => {
+          // Merge with collection suggestions, keeping collection first
+          const collectionSuggestions = prev.filter((s) => s.type === 'collection');
+          return [...collectionSuggestions, ...discogsSuggestions];
+        });
+      }
+    } catch {
+      // Silently fail for suggestions
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, [searchByQuery]);
+
+  // Handle input change with typeahead
+  const handleInputChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setSelectedSuggestionIndex(-1);
+
+    if (value.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Instant: search collection
+    const collectionResults = collectionFuse.search(value).slice(0, 3);
+    const collectionSuggestions: Suggestion[] = collectionResults.map((r) => ({
+      text: r.item.text,
+      type: 'collection' as const,
+      subtext: r.item.subtext,
+    }));
+
+    setSuggestions(collectionSuggestions);
+    setShowSuggestions(true);
+
+    // Debounced: fetch from Discogs (800ms to reduce API calls)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      fetchDiscogsSuggestions(value);
+    }, 800);
+  }, [collectionFuse, fetchDiscogsSuggestions]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  // Apply fuzzy ranking to search results
+  const searchResults = useMemo(() => {
+    if (rawSearchResults.length === 0 || !lastSearchQuery.trim()) {
+      return rawSearchResults;
+    }
+
+    const fuse = new Fuse(rawSearchResults, fuseOptions);
+    const fuzzyResults = fuse.search(lastSearchQuery);
+
+    // Return results sorted by fuzzy match score (best matches first)
+    // If no fuzzy matches, return original results (Discogs already ranked them)
+    if (fuzzyResults.length === 0) {
+      return rawSearchResults;
+    }
+
+    return fuzzyResults.map((result) => result.item);
+  }, [rawSearchResults, lastSearchQuery]);
   const [fullRelease, setFullRelease] = useState<DiscogsRelease | null>(null);
   const [loadingRelease, setLoadingRelease] = useState(false);
   const [notes, setNotes] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   // Search by artist/album
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async (e?: React.FormEvent, overrideQuery?: string) => {
+    e?.preventDefault();
 
-    if (!searchQuery.trim()) return;
+    const query = overrideQuery ?? searchQuery;
+    if (!query.trim()) return;
+
+    // Close suggestions when searching
+    setShowSuggestions(false);
+    setSuggestions([]);
+
+    // Cancel any pending debounced searches
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
     try {
-      const response = await searchByQuery(searchQuery);
-      setSearchResults(response.results || []);
+      const response = await searchByQuery(query);
 
-      if (response.results.length === 0) {
+      setLastSearchQuery(query);
+      setRawSearchResults(response.results || []);
+
+      if (!response.results || response.results.length === 0) {
         setToast({ message: 'No results found', type: 'info' });
       }
     } catch (err) {
       setToast({ message: 'Search failed', type: 'error' });
+    }
+  };
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = (suggestion: Suggestion) => {
+    setSearchQuery(suggestion.text);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    // Trigger search with the selected text directly (don't rely on state update)
+    handleSearch(undefined, suggestion.text);
+  };
+
+  // Handle keyboard navigation in suggestions
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        if (selectedSuggestionIndex >= 0) {
+          e.preventDefault();
+          const selected = suggestions[selectedSuggestionIndex];
+          setSearchQuery(selected.text);
+          setShowSuggestions(false);
+          setSuggestions([]);
+          handleSearch(undefined, selected.text);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        break;
     }
   };
 
@@ -62,7 +296,8 @@ export default function AddRecordPage() {
       const response = await searchByBarcode(barcode);
 
       if (response.results.length > 0) {
-        setSearchResults(response.results);
+        setLastSearchQuery(''); // No fuzzy ranking for barcode scans
+        setRawSearchResults(response.results);
         setToast({ message: 'Found matching records!', type: 'success' });
       } else {
         setToast({ message: 'No records found for this barcode', type: 'error' });
@@ -142,12 +377,49 @@ export default function AddRecordPage() {
       content: (
         <div className="space-y-4 sm:space-y-6">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search artist, album..."
-              className="flex-1"
-            />
+            <div className="relative flex-1">
+              <Input
+                ref={inputRef}
+                value={searchQuery}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                placeholder="Search artist, album..."
+                className="w-full"
+                autoComplete="off"
+              />
+              {/* Suggestions dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute z-50 w-full mt-1 bg-vinyl-800 border border-vinyl-700 rounded-lg shadow-lg overflow-hidden"
+                >
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={`${suggestion.type}-${suggestion.text}`}
+                      type="button"
+                      className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-vinyl-700 transition-colors ${
+                        index === selectedSuggestionIndex ? 'bg-vinyl-700' : ''
+                      }`}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      <span className="text-sm text-vinyl-100 truncate">{suggestion.text}</span>
+                      <span className={`text-xs ml-2 flex-shrink-0 ${
+                        suggestion.type === 'collection' ? 'text-accent-purple' : 'text-vinyl-400'
+                      }`}>
+                        {suggestion.subtext}
+                      </span>
+                    </button>
+                  ))}
+                  {loadingSuggestions && (
+                    <div className="px-3 py-2 text-xs text-vinyl-400 flex items-center gap-2">
+                      <div className="w-3 h-3 border border-vinyl-400 border-t-transparent rounded-full animate-spin" />
+                      Searching Discogs...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <Button type="submit" isLoading={loading} className="w-full sm:w-auto">
               Search
             </Button>
