@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -17,6 +18,7 @@ export default function BarcodeScanner({
   const [isScanning, setIsScanning] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [manualBarcode, setManualBarcode] = useState('');
 
   useEffect(() => {
     // Initialize scanner
@@ -36,33 +38,85 @@ export default function BarcodeScanner({
   const startScanning = async () => {
     if (!scannerRef.current || isScanning || isStarting) return;
 
-    // Show container before starting so the library can attach the video
     setIsStarting(true);
-
-    // Wait for next frame to ensure container is visible
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     try {
+      // First, get a high-resolution stream to find the best camera
+      let deviceId: string | undefined;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        });
+        // Get the device ID from the high-res stream
+        const track = stream.getVideoTracks()[0];
+        deviceId = track.getSettings().deviceId;
+        // Stop this stream - html5-qrcode will create its own
+        stream.getTracks().forEach((t) => t.stop());
+      } catch {
+        // Fall back to default camera selection
+      }
+
+      // Start scanner with the device ID (high-res camera) or fallback
+      const cameraConfig = deviceId
+        ? { deviceId: { exact: deviceId } }
+        : { facingMode: 'environment' };
+
       await scannerRef.current.start(
-        { facingMode: 'environment' },
+        cameraConfig,
         {
-          fps: 15,
+          fps: 10,
           qrbox: (viewfinderWidth, viewfinderHeight) => {
-            // Make qrbox 80% of the smaller dimension for larger scan area
-            const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
-            const size = Math.floor(minDimension * 0.8);
-            return { width: size, height: size };
+            // Wide rectangle for barcodes
+            const width = Math.floor(viewfinderWidth * 0.9);
+            const height = Math.floor(viewfinderHeight * 0.25);
+            return { width, height: Math.max(height, 80) };
           },
         },
         (decodedText) => {
-          // Successful scan
           onScan(decodedText);
           stopScanning();
         },
-        () => {
-          // Scanning error (continuous, can be ignored)
-        }
+        () => {}
       );
+
+      // After scanner starts, try to enhance the camera settings
+      setTimeout(async () => {
+        try {
+          const video = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+          if (video?.srcObject) {
+            const track = (video.srcObject as MediaStream).getVideoTracks()[0];
+            const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
+              focusMode?: string[];
+              zoom?: { min: number; max: number };
+            };
+
+            const constraints: MediaTrackConstraintSet & { focusMode?: string; zoom?: number } = {};
+
+            // Enable continuous autofocus
+            if (capabilities.focusMode?.includes('continuous')) {
+              constraints.focusMode = 'continuous';
+            }
+
+            // Apply 1.5x zoom if available (helps with distance)
+            if (capabilities.zoom) {
+              constraints.zoom = Math.min(1.5, capabilities.zoom.max);
+            }
+
+            if (Object.keys(constraints).length > 0) {
+              await track.applyConstraints({
+                advanced: [constraints as MediaTrackConstraintSet],
+              });
+            }
+          }
+        } catch {
+          // Camera enhancements not supported
+        }
+      }, 500);
 
       setIsScanning(true);
       setIsStarting(false);
@@ -157,16 +211,34 @@ export default function BarcodeScanner({
         </div>
       )}
 
-      {/* Instructions */}
+      {/* Manual Entry */}
       <div className="p-4 bg-vinyl-900 border border-vinyl-700 rounded-lg">
-        <h4 className="font-medium text-vinyl-200 mb-2">Instructions:</h4>
-        <ol className="text-sm text-vinyl-400 space-y-1 list-decimal list-inside">
-          <li>Click "Start Scanner" to activate your camera</li>
-          <li>Allow camera access when prompted</li>
-          <li>Point your camera at the barcode on the vinyl record</li>
-          <li>Keep the barcode within the scanning area</li>
-          <li>Scanner will automatically detect and search for the record</li>
-        </ol>
+        <h4 className="font-medium text-vinyl-200 mb-2">Or enter barcode manually:</h4>
+        <p className="text-sm text-vinyl-400 mb-3">
+          Type the number printed below the barcode on your record
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (manualBarcode.trim()) {
+              onScan(manualBarcode.trim());
+              setManualBarcode('');
+            }
+          }}
+          className="flex gap-2"
+        >
+          <Input
+            value={manualBarcode}
+            onChange={(e) => setManualBarcode(e.target.value)}
+            placeholder="e.g. 075992738927"
+            className="flex-1"
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+          <Button type="submit" disabled={!manualBarcode.trim()}>
+            Search
+          </Button>
+        </form>
       </div>
     </div>
   );
